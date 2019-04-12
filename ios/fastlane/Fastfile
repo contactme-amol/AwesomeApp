@@ -1,0 +1,278 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:ios)
+
+platform :ios do
+desc "Description of what the lane does"
+lane :custom_lane do
+# add actions here: https://docs.fastlane.tools/actions
+end
+
+desc "[appsetup] lane will be perform app creation on Apple Dev Center and Appp Store Connect with below details"
+lane :appsetup do
+produce(
+username: 'ios@figmd.com',
+app_identifier: 'com.figmd.niva',
+app_name: 'Niva',
+language: 'English',
+app_version: '1.1.12',
+sku: '23112018',
+#team_name: 'FIGmd Apps', # only necessary when in multiple teams
+#team_id: ""
+)
+end
+
+desc "[create_dev_cert] lane will be created development certificate for app"
+lane :create_dev_cert do
+get_certificates(
+username: "ios@figmd.com",
+development:  true,
+filename: "Niva-Development",
+output_path: "./fastlane/certificates/development",
+platform: "ios",
+#team_id: "",
+#team_name: ""
+)
+end
+
+desc "[create_dist_cert] lane will be created distribution certificate for app"
+lane :create_dist_cert do
+get_certificates(
+username: "ios@figmd.com",
+development:  true,
+filename: "Niva-Distribution",
+output_path: "./fastlane/certificates/distribution",
+platform: "ios",
+#team_id: "",
+#team_name: ""
+)
+end
+
+
+desc "[create_dev_profile] lane will be created developer profile for the app"
+lane :create_dev_profile do
+get_provisioning_profile(
+adhoc: false,
+developer_id: true,
+force: true,
+username:  "ios@figmd.com",
+#team_id: "",
+#team_name: "",
+app_identifier: "com.figmd.niva",
+provisioning_name: "FIGmd-Development",
+filename: "FIGmd-Development.mobileprovision",
+output_path: "./fastlane/profiles"
+)
+end
+
+desc "[create_adhoc_profile] lane will be created adhoc profile for the app"
+lane :create_adhoc_profile do
+get_provisioning_profile(
+adhoc: true,
+force: true,
+username:  "ios@figmd.com",
+#team_id: "",
+#team_name: "",
+app_identifier: "com.figmd.niva",
+provisioning_name: "FIGmd-AdHoc",
+filename: "FIGmd-AdHoc.mobileprovision",
+output_path: "./fastlane/profiles"
+)
+end
+
+desc "[create_store_profile] lane will be created app stote profile for the app"
+lane :create_store_profile do
+get_provisioning_profile(
+adhoc: false,
+force: true,
+username:  "ios@figmd.com",
+#team_id: "",
+#team_name: "",
+app_identifier: "com.figmd.niva",
+provisioning_name: "FIGmd-AppStore",
+filename: "FIGmd-AppStore.mobileprovision",
+output_path: "./fastlane/profiles"
+)
+end
+
+lane :match_development do
+match(
+username: "ios@figmd.com",
+git_url: "git@192.168.105.127:ios/Certificates.git",
+git_branch: "all_certificates",
+type: "development",
+app_identifier: "com.figmd.niva",
+git_full_name: "Amol Chaudhari",
+git_user_email: "amol.chaudhari@figmd.com",
+#team_id: "",
+#team_name: "",
+readonly: false,
+platform: "ios"
+)
+end
+
+lane :match_appstore do
+match(
+username: "ios@figmd.com",
+git_url: "git@192.168.105.127:ios/Certificates.git",
+git_branch: "all_certificates",
+type: "appstore",
+app_identifier: "com.figmd.niva",
+git_full_name: "Amol Chaudhari",
+git_user_email: "amol.chaudhari@figmd.com",
+#team_id: "",
+#team_name: "",
+readonly: false,
+platform: "ios"
+)
+end
+
+lane :match_adhoc do
+match(
+username: "ios@figmd.com",
+git_url: "git@192.168.105.127:ios/Certificates.git",
+git_branch: "all_certificates",
+type: "adhoc",
+app_identifier: "com.figmd.niva",
+git_full_name: "Amol Chaudhari",
+git_user_email: "amol.chaudhari@figmd.com",
+#team_id: "",
+#team_name: "",
+readonly: true,
+platform: "ios"
+)
+end
+
+lane :push_dev_pem do
+get_push_certificate(
+development: true,
+username:  "ios@figmd.com",
+force: true,
+app_identifier: "com.figmd.niva",
+save_private_key: true,
+p12_password: "12345",
+pem_name: "Niva-Development",
+output_path: "./fastlane/pem/dev"
+# insert the code to upload the PEM file to the server
+)
+end
+
+lane :push_dist_pem do
+get_push_certificate(
+development: false,
+username:  "ios@figmd.com",
+force: true, # create a new profile, even if the old one is still valid
+app_identifier: "com.figmd.niva", # optional app identifier,
+save_private_key: true,
+p12_password: "12345",
+pem_name: "Niva-Distribution",
+output_path: "./fastlane/pem/dist"
+# insert the code to upload the PEM file to the server
+)
+end
+
+lane :increment_version do
+#increment_version_number(
+#version_number: "2.1.1" # Set a specific version number
+#)
+#increment_version_number(
+# bump_type: "major" # Automatically increment major version number
+# bump_type: "minor" # Automatically increment minor version number
+# bump_type: "patch" # Automatically increment patch version number
+#)
+increment_version_number(
+xcodeproj: "./ios/Niva.xcodeproj"
+)
+# Automatically increment patch version number
+end
+
+lane :increment_build do
+#increment_build_number(
+#build_number: "75" # set a specific number
+#)
+increment_build_number(
+xcodeproj: "./ios/Niva.xcodeproj"
+)
+end
+
+desc "Take screenshots for App Store Submission"
+lane :screenshots do
+capture_ios_screenshots(
+clear_previous_screenshots: true,
+reinstall_app: true,
+app_identifier: "com.figmd.niva",
+clean: true
+)
+end
+
+lane :store_upload do
+upload_to_app_store(
+username:  "ios@figmd.com",
+app_identifier: "com.figmd.niva",
+submit_for_review: false,
+force: true,
+metadata_path: "./metadata"
+)
+end
+
+lane :export_app_ipa do
+build_ios_app(
+scheme: "Niva",
+export_method: "app-store",
+output_directory: "./fastlane/ipa",
+output_name: "Niva.ipa",
+clean: true,
+workspace: "./ios/Niva.xcworkspace"
+)
+end
+
+lane :create_cert_profiles do
+create_dev_cert
+create_dist_cert
+create_dev_profile
+create_adhoc_profile
+create_store_profile
+end
+
+lane :release do
+match_development
+match_appstore
+#increment_version
+increment_build
+build_app(scheme: "Niva")
+#screenshots
+store_upload
+#slack(message: "Successfully uploaded a new App Store build")
+end
+
+lane :export_build do
+increment_build
+sigh
+export_app_ipa
+end
+
+lane :testflight_release do
+match_development
+match_appstore
+increment_build
+export_app_ipa
+upload_to_testflight(
+username: "ios@figmd.com",
+app_identifier: "com.figmd.niva"
+)
+end
+
+end
